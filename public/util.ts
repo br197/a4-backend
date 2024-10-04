@@ -80,6 +80,48 @@ const operations: Operation[] = [
     method: "DELETE",
     fields: { id: "input" },
   },
+  {
+    name: "Create Group",
+    endpoint: "/api/groups",
+    method: "POST",
+    fields: { groupName: "input", groupDescription: "input" },
+  },
+  {
+    name: "Delete Group",
+    endpoint: "/api/groups/:groupName",
+    method: "DELETE",
+    fields: { id: "input", groupName: "input" },
+  },
+  {
+    name: "Join Group",
+    endpoint: "/api/groups/:groupName",
+    method: "POST",
+    fields: { id: "input", groupName: "input" },
+  },
+  {
+    name: "Edit Group Name",
+    endpoint: "/api/groups/:groupName",
+    method: "PUT",
+    fields: { id: "input", newGroupName: "input" },
+  },
+  {
+    name: "Edit Group Name Description",
+    endpoint: "/api/groups/:groupDescription",
+    method: "PUT",
+    fields: { id: "input", newGroupDescription: "input" },
+  },
+  {
+    name: "Get Badges",
+    endpoint: "/api/milestones",
+    method: "GET",
+    fields: { id: "input" },
+  },
+  {
+    name: "Receive Badge",
+    endpoint: "/api/milestones/:milestone",
+    method: "PUT",
+    fields: { id: "input", milestoneName: "input" },
+  },
   //
   // ...
   //

@@ -195,7 +195,7 @@ class Routes {
     return milestones;
   }
 
-  @Router.get("/milestones")
+  @Router.put("/milestones/:milestone")
   async receiveMilestones(session: SessionDoc, milestone: string) {
     const user = Sessioning.getUser(session);
     const milestones = await Milestoning.receiveBadge(user, milestone);
