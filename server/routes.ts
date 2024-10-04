@@ -2,8 +2,8 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Friending, Posting, Sessioning } from "./app";
-import { PostOptions } from "./concepts/posting";
+import { Authing, Friending, Grouping, Milestoning, Posting, Sessioning } from "./app";
+import { PostDoc, PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
 
@@ -152,8 +152,71 @@ class Routes {
     const fromOid = (await Authing.getUserByUsername(from))._id;
     return await Friending.rejectRequest(fromOid, user);
   }
-}
 
+  @Router.post("/groups")
+  async createGroup(session: SessionDoc, groupName: string, groupDescription: string) {
+    const groupOwner = Sessioning.getUser(session);
+    const created = await Grouping.createGroup(groupOwner, groupName, groupDescription);
+    return { msg: created.msg };
+  }
+
+  @Router.post("/groups/addUser/:user")
+  async joinGroup(session: SessionDoc, groupName: string) {
+    const user = Sessioning.getUser(session);
+    const created = await Grouping.joinUserGroup(user, groupName);
+    return { msg: created.msg };
+  }
+
+  @Router.delete("/groups/:groupName")
+  async deleteGroup(session: SessionDoc, groupName: string) {
+    const groupOwner = Sessioning.getUser(session);
+    const created = await Grouping.deleteUserGroup(groupOwner, groupName);
+    return { msg: created.msg };
+  }
+
+  @Router.put("/groups/:groupName")
+  async editGroupName(session: SessionDoc, groupName: string, groupDescription: string) {
+    const groupOwner = Sessioning.getUser(session);
+    const created = await Grouping.editGroupName(groupOwner, groupName);
+    return { msg: created.msg };
+  }
+
+  @Router.put("/groups/:groupDescription")
+  async editGroupDescription(session: SessionDoc, groupDescription: string) {
+    const groupOwner = Sessioning.getUser(session);
+    const created = await Grouping.editGroupName(groupOwner, groupDescription);
+    return { msg: created.msg };
+  }
+
+  @Router.get("/milestones")
+  async getMilestones(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    const milestones = await Milestoning.getBadges(user);
+    return milestones;
+  }
+
+  @Router.get("/milestones")
+  async receiveMilestones(session: SessionDoc, milestone: string) {
+    const user = Sessioning.getUser(session);
+    const milestones = await Milestoning.receiveBadge(user, milestone);
+    return milestones;
+  }
+
+  @Router.post("/comment")
+  async createComment(session: SessionDoc, content: string, date: Date, post: PostDoc) {
+    //create comments
+  }
+
+  @Router.put("/comment/:newContent")
+  async updateComment(session: SessionDoc, content: string) {
+    //update comment contents
+  }
+
+  @Router.delete("/comment/:id")
+  async deleteComment(session: SessionDoc) {
+    //delete comment with id
+  }
+}
 /** The web app. */
 export const app = new Routes();
 
