@@ -122,6 +122,31 @@ const operations: Operation[] = [
     method: "PUT",
     fields: { id: "input", milestoneName: "input" },
   },
+  {
+    name: "Get User Comments",
+    endpoint: "/api/comments",
+    method: "GET",
+    fields: { author: "input" },
+  },
+  {
+    name: "Add Comment",
+    endpoint: "/api/comment",
+    method: "POST",
+    fields: { postId: "input", content: "input" },
+  },
+  {
+    name: "Update Comment",
+    endpoint: "/api/comment/:newContent",
+    method: "PATCH",
+    fields: { id: "input", newContent: "input" },
+  },
+  {
+    name: "Delete Comment",
+    endpoint: "/api/comment/:commentId",
+    method: "DELETE",
+    fields: { commentId: "input" },
+  },
+
   //
   // ...
   //

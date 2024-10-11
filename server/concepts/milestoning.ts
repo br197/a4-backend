@@ -1,10 +1,9 @@
 import { ObjectId } from "mongodb";
-
 import DocCollection, { BaseDoc } from "../framework/doc";
+import { NotFoundError } from "./errors";
 
 export interface MilestoneDoc extends BaseDoc {
-  user: ObjectId;
-  userMilestones: Array<string>;
+  userMilestones: Map<string, ObjectId>;
 }
 
 /**
@@ -24,15 +23,15 @@ export default class MilestoningConcept {
    * User receives badge
    */
   async receiveBadge(user: ObjectId, milestone: string) {
-    const badge = await this.milestones.readOne({ user });
+    const badge = await this.milestones.readOne({});
 
     if (badge == null) {
-      return { msg: "Milestone not found!" };
+      throw new NotFoundError("Milestone doesn't exist");
     }
 
-    if (!badge.userMilestones.includes(milestone)) {
-      badge.userMilestones.push(milestone);
-    }
+    //if (badge.userMilestones.includes(milestone)) {
+    //badge.userMilestones.push(milestone);
+    //}
 
     await this.milestones.partialUpdateOne({ user }, { userMilestones: badge.userMilestones });
     return { msg: "Milestone received successfully!", userMilestones: await this.milestones.readOne({ user }) };

@@ -1,4 +1,5 @@
 import AuthenticatingConcept from "./concepts/authenticating";
+import CommentingConcept from "./concepts/commenting";
 import FriendingConcept from "./concepts/friending";
 import GroupingConcept from "./concepts/grouping";
 import MilestoningConcept from "./concepts/milestoning";
@@ -13,3 +14,4 @@ export const Posting = new PostingConcept("posts");
 export const Friending = new FriendingConcept("friends");
 export const Grouping = new GroupingConcept("groups");
 export const Milestoning = new MilestoningConcept("milestones");
+export const Commenting = new CommentingConcept("comments");

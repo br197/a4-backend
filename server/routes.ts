@@ -2,8 +2,8 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Friending, Grouping, Milestoning, Posting, Sessioning } from "./app";
-import { PostDoc, PostOptions } from "./concepts/posting";
+import { Authing, Commenting, Friending, Grouping, Milestoning, Posting, Sessioning } from "./app";
+import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
 
@@ -202,19 +202,38 @@ class Routes {
     return milestones;
   }
 
+  @Router.get("/comments")
+  async getComment(author: string) {
+    let comments;
+    const id = (await Authing.getUserByUsername(author))._id;
+    comments = await Commenting.getByAuthor(id);
+    return await Responses.comments(comments);
+  }
+
   @Router.post("/comment")
-  async createComment(session: SessionDoc, content: string, date: Date, post: PostDoc) {
+  async createComment(session: SessionDoc, content: string, postId: ObjectId) {
     //create comments
+    const user = Sessioning.getUser(session);
+    const created = await Commenting.addComment(user, content, postId);
+    return { msg: created.msg, comment: await Responses.comment(created.comment) };
   }
 
-  @Router.put("/comment/:newContent")
-  async updateComment(session: SessionDoc, content: string) {
+  @Router.patch("/comment/:newContent")
+  async updateComment(session: SessionDoc, id: ObjectId, newContent: string) {
     //update comment contents
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await Commenting.assertAuthorIsUser(oid, user);
+    return await Commenting.update(oid, newContent);
   }
 
-  @Router.delete("/comment/:id")
-  async deleteComment(session: SessionDoc) {
-    //delete comment with id
+  @Router.delete("/comment/:commentId")
+  async deleteComment(session: SessionDoc, commentId: ObjectId) {
+    //delete comment with commentId
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(commentId);
+    await Commenting.assertAuthorIsUser(oid, user);
+    return Commenting.delete(oid);
   }
 }
 /** The web app. */
