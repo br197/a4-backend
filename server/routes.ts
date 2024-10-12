@@ -61,7 +61,17 @@ class Routes {
   async logIn(session: SessionDoc, username: string, password: string) {
     const u = await Authing.authenticate(username, password);
     Sessioning.start(session, u._id);
-    return { msg: "Logged in!" };
+    const userMilestones = await Milestoning.getBadges(u._id);
+    const logIn = "Logged in!";
+    var messages = [logIn];
+    if (!userMilestones) {
+      await Milestoning.initializeUserMilestones(u._id);
+      const milestoneMsg = await Milestoning.receiveBadge(u._id, "Getting Started: Created Account");
+      if (milestoneMsg) {
+        messages.push(milestoneMsg.msg);
+      }
+    }
+    return { msg: messages.join(" ") };
   }
 
   @Router.post("/logout")
@@ -87,7 +97,20 @@ class Routes {
   async createPost(session: SessionDoc, content: string, options?: PostOptions) {
     const user = Sessioning.getUser(session);
     const created = await Posting.create(user, content, options);
-    return { msg: created.msg, post: await Responses.post(created.post) };
+    const messages = [created.msg];
+    const userBadges = await Milestoning.getBadges(user);
+    if (userBadges !== null) {
+      if (!(userBadges.userMilestones instanceof Map)) {
+        userBadges.userMilestones = new Map(Object.entries(userBadges.userMilestones || {}));
+      }
+      if (!userBadges.userMilestones.get("Post Superstar")) {
+        const milestone = await Milestoning.receiveBadge(user, "Post Superstar");
+        if (milestone) {
+          messages.push(milestone.msg);
+        }
+      }
+    }
+    return { msg: messages.join(" "), post: await Responses.post(created.post) };
   }
 
   @Router.patch("/posts/:id")
@@ -171,8 +194,28 @@ class Routes {
   @Router.post("/groups")
   async createGroup(session: SessionDoc, groupName: string, groupDescription: string) {
     const groupOwner = Sessioning.getUser(session);
-    const created = await Grouping.createGroup(groupOwner, groupName, groupDescription);
-    return { msg: created.msg, group: await Responses.group(created.group) };
+    const userBadges = await Milestoning.getBadges(groupOwner);
+    if (userBadges !== null) {
+      if (!(userBadges.userMilestones instanceof Map)) {
+        userBadges.userMilestones = new Map(Object.entries(userBadges.userMilestones || {}));
+      }
+      if (userBadges.userMilestones.get("Comment Guru") && userBadges.userMilestones.get("Post Superstar") && userBadges.userMilestones.get("Getting Started: Created Account")) {
+        const created = await Grouping.createGroup(groupOwner, groupName, groupDescription);
+        return { msg: created.msg, group: await Responses.group(created.group) };
+      } else {
+        const missingBadge: string[] = [];
+        if (!userBadges.userMilestones.get("Comment Guru")) {
+          missingBadge.push("Comment Guru");
+        }
+        if (!userBadges.userMilestones.get("Post Superstar")) {
+          missingBadge.push("Post Superstar");
+        }
+        if (!userBadges.userMilestones.get("Getting Started: Created Account")) {
+          missingBadge.push("Getting Started: Created Account");
+        }
+        return { msg: `You are unable to create a group because your are missing the following badges ${missingBadge}` };
+      }
+    }
   }
 
   @Router.post("/groups/addUser")
@@ -180,13 +223,20 @@ class Routes {
     const user = Sessioning.getUser(session);
     let created;
     created = await Grouping.joinGroup(user, groupName);
-    const milestone = await Milestoning.receiveBadge(user, "Building Community");
     const messages = [created.msg];
-    if (milestone) {
-      messages.push(milestone.msg);
+    const userBadges = await Milestoning.getBadges(user);
+    if (userBadges !== null) {
+      if (!(userBadges.userMilestones instanceof Map)) {
+        userBadges.userMilestones = new Map(Object.entries(userBadges.userMilestones || {}));
+      }
+      if (!userBadges.userMilestones.get("Building Community")) {
+        const milestone = await Milestoning.receiveBadge(user, "Building Community");
+        if (milestone) {
+          messages.push(milestone.msg);
+        }
+      }
+      return { msg: messages.join(" "), group: await Responses.group(created.group) };
     }
-
-    return { msg: messages.join(" "), group: await Responses.group(created.group) };
   }
 
   @Router.delete("/groups/:groupName")
@@ -239,7 +289,20 @@ class Routes {
     //create comments
     const user = Sessioning.getUser(session);
     const created = await Commenting.addComment(user, content, postId);
-    return { msg: created.msg, comment: await Responses.comment(created.comment) };
+    const messages = [created.msg];
+    const userBadges = await Milestoning.getBadges(user);
+    if (userBadges !== null) {
+      if (!(userBadges.userMilestones instanceof Map)) {
+        userBadges.userMilestones = new Map(Object.entries(userBadges.userMilestones || {}));
+      }
+      if (!userBadges.userMilestones.get("Comment Guru")) {
+        const milestone = await Milestoning.receiveBadge(user, "Comment Guru");
+        if (milestone) {
+          messages.push(milestone.msg);
+        }
+      }
+    }
+    return { msg: messages.join(" "), comment: await Responses.comment(created.comment) };
   }
 
   @Router.patch("/comment/:newContent")
