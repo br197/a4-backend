@@ -1,6 +1,8 @@
 import { Authing } from "./app";
-import { CommentDoc } from "./concepts/commenting";
+import { CommentAuthorNotMatchError, CommentDoc } from "./concepts/commenting";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
+import { GroupDoc } from "./concepts/grouping";
+import { MilestoneDoc } from "./concepts/milestoning";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
 import { Router } from "./framework/router";
 
@@ -21,7 +23,7 @@ export default class Responses {
   }
 
   /**
-   * Convert PostDoc into more readable format for the frontend by converting the author id into a username.
+   * Convert CommentDoc into more readable format for the frontend by converting the author id into a username.
    */
   static async comment(comment: CommentDoc | null) {
     if (!comment) {
@@ -29,6 +31,26 @@ export default class Responses {
     }
     const author = await Authing.getUserById(comment.author);
     return { ...comment, author: author.username };
+  }
+
+  /**
+   * Convert GroupDoc into more readable format for the frontend.
+   */
+  static async group(group: GroupDoc | null) {
+    if (!group) {
+      return group;
+    }
+    return { ...group };
+  }
+
+  /**
+   * Convert MilestoneDoc into more readable format for the frontend.
+   */
+  static async milestone(milestone: MilestoneDoc | null) {
+    if (!milestone) {
+      return milestone;
+    }
+    return { ...milestone };
   }
 
   /**
@@ -48,6 +70,20 @@ export default class Responses {
   }
 
   /**
+   * Display information for array of groups.
+   */
+  static async groups(groups: GroupDoc[]) {
+    return groups.map((group) => ({ ...group }));
+  }
+
+  /**
+   * Display information for array of groups.
+   */
+  static async milestones(milestones: MilestoneDoc[]) {
+    return milestones.map((milestone) => ({ ...milestone }));
+  }
+
+  /**
    * Convert FriendRequestDoc into more readable format for the frontend
    * by converting the ids into usernames.
    */
@@ -60,6 +96,11 @@ export default class Responses {
 }
 
 Router.registerError(PostAuthorNotMatchError, async (e) => {
+  const username = (await Authing.getUserById(e.author)).username;
+  return e.formatWith(username, e._id);
+});
+
+Router.registerError(CommentAuthorNotMatchError, async (e) => {
   const username = (await Authing.getUserById(e.author)).username;
   return e.formatWith(username, e._id);
 });

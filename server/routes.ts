@@ -153,61 +153,85 @@ class Routes {
     return await Friending.rejectRequest(fromOid, user);
   }
 
+  @Router.get("/allGroups")
+  async getAllGroups() {
+    let groups;
+    groups = await Grouping.getAllGroups();
+    return await Responses.groups(groups);
+  }
+
+  @Router.get("/groups/:username")
+  async getUserGroups(username: string) {
+    let groups;
+    const id = (await Authing.getUserByUsername(username))._id;
+    groups = await Grouping.getUserGroups(id);
+    return { msg: groups.msg, groups: await Responses.groups(groups.userGroups) };
+  }
+
   @Router.post("/groups")
   async createGroup(session: SessionDoc, groupName: string, groupDescription: string) {
     const groupOwner = Sessioning.getUser(session);
     const created = await Grouping.createGroup(groupOwner, groupName, groupDescription);
-    return { msg: created.msg };
+    return { msg: created.msg, group: await Responses.group(created.group) };
   }
 
-  @Router.post("/groups/addUser/:user")
+  @Router.post("/groups/addUser")
   async joinGroup(session: SessionDoc, groupName: string) {
     const user = Sessioning.getUser(session);
-    const created = await Grouping.joinUserGroup(user, groupName);
-    return { msg: created.msg };
+    let created;
+    created = await Grouping.joinGroup(user, groupName);
+    const milestone = await Milestoning.receiveBadge(user, "Building Community");
+    const messages = [created.msg];
+    if (milestone) {
+      messages.push(milestone.msg);
+    }
+
+    return { msg: messages.join(" "), group: await Responses.group(created.group) };
   }
 
   @Router.delete("/groups/:groupName")
   async deleteGroup(session: SessionDoc, groupName: string) {
     const groupOwner = Sessioning.getUser(session);
-    const created = await Grouping.deleteUserGroup(groupOwner, groupName);
-    return { msg: created.msg };
+    const deleted = await Grouping.deleteGroup(groupOwner, groupName);
+    return { msg: deleted.msg };
   }
 
-  @Router.put("/groups/:groupName")
-  async editGroupName(session: SessionDoc, groupName: string, groupDescription: string) {
+  @Router.patch("/groups/leave/:groupName")
+  async leaveGroup(session: SessionDoc, groupName: string) {
+    const user = Sessioning.getUser(session);
+    const leaving = await Grouping.leaveGroup(user, groupName);
+    return { msg: leaving.msg };
+  }
+
+  @Router.patch("/groups/name/:groupName")
+  async editGroupName(session: SessionDoc, id: string, groupName: string) {
     const groupOwner = Sessioning.getUser(session);
-    const created = await Grouping.editGroupName(groupOwner, groupName);
-    return { msg: created.msg };
+    const oid = new ObjectId(id);
+    await Grouping.assertIsGroupOwner(oid, groupOwner);
+    return await Grouping.editGroupName(oid, groupName);
   }
 
-  @Router.put("/groups/:groupDescription")
-  async editGroupDescription(session: SessionDoc, groupDescription: string) {
+  @Router.patch("/groups/description/:groupDescription")
+  async editGroupDescription(session: SessionDoc, id: string, groupDescription: string) {
     const groupOwner = Sessioning.getUser(session);
-    const created = await Grouping.editGroupName(groupOwner, groupDescription);
-    return { msg: created.msg };
+    const oid = new ObjectId(id);
+    await Grouping.assertIsGroupOwner(oid, groupOwner);
+    return await Grouping.editGroupDescription(oid, groupDescription);
   }
 
-  @Router.get("/milestones")
+  @Router.get("/milestones/:id")
   async getMilestones(session: SessionDoc) {
     const user = Sessioning.getUser(session);
     const milestones = await Milestoning.getBadges(user);
-    return milestones;
+    return Responses.milestone(milestones);
   }
 
-  @Router.put("/milestones/:milestone")
-  async receiveMilestones(session: SessionDoc, milestone: string) {
-    const user = Sessioning.getUser(session);
-    const milestones = await Milestoning.receiveBadge(user, milestone);
-    return milestones;
-  }
-
-  @Router.get("/comments")
-  async getComment(author: string) {
+  @Router.get("/comments/:username")
+  async getComment(username: string) {
     let comments;
-    const id = (await Authing.getUserByUsername(author))._id;
+    const id = (await Authing.getUserByUsername(username))._id;
     comments = await Commenting.getByAuthor(id);
-    return await Responses.comments(comments);
+    return Responses.comments(comments);
   }
 
   @Router.post("/comment")
@@ -219,7 +243,7 @@ class Routes {
   }
 
   @Router.patch("/comment/:newContent")
-  async updateComment(session: SessionDoc, id: ObjectId, newContent: string) {
+  async updateComment(session: SessionDoc, id: ObjectId, newContent?: string) {
     //update comment contents
     const user = Sessioning.getUser(session);
     const oid = new ObjectId(id);
