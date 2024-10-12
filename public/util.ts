@@ -66,7 +66,7 @@ const operations: Operation[] = [
     name: "Create Post",
     endpoint: "/api/posts",
     method: "POST",
-    fields: { content: "input" },
+    fields: { groupNameToPostIn: "input", content: "input" },
   },
   {
     name: "Update Post",

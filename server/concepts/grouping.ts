@@ -31,14 +31,14 @@ export default class GroupingConcept {
   }
 
   /*
-  Get all groups user is in.
+  Get all groups user is in or has.
   */
   async getUserGroups(_id: ObjectId) {
     const group = await this.groups.readMany({});
     var userGroups: Array<GroupDoc> = [];
     if (group) {
       for (var g of group) {
-        if (g.groupMembers.some((member) => member.equals(_id)) || g.groupOwner.equals(_id)) {
+        if (g.groupMembers.some((member) => member.toString() === _id.toString() || g.groupOwner.toString() === _id.toString())) {
           userGroups.push(g);
         }
       }
