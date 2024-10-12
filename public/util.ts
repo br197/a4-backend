@@ -93,13 +93,37 @@ const operations: Operation[] = [
     fields: { username: "input" },
   },
   {
+    name: "Get all resource groups",
+    endpoint: "/api/resourceGroups",
+    method: "GET",
+    fields: {},
+  },
+  {
+    name: "Create Resource Group",
+    endpoint: "/api/resourceGroups",
+    method: "POST",
+    fields: { groupName: "input", groupDescription: "input" },
+  },
+  {
+    name: "Add Post or Comment To Resource Group",
+    endpoint: "/api/resourceGroups/add/:resourceId",
+    method: "POST",
+    fields: { groupName: "input", resourceId: "input" },
+  },
+  {
+    name: "Remove Resource from Resource Group",
+    endpoint: "/api/resourceGroups/remove/:resourceId",
+    method: "PATCH",
+    fields: { groupName: "input", resourceId: "input" },
+  },
+  {
     name: "Create User Group",
     endpoint: "/api/groups",
     method: "POST",
     fields: { groupName: "input", groupDescription: "input" },
   },
   {
-    name: "Delete User Group",
+    name: "Delete Group",
     endpoint: "/api/groups/:groupName",
     method: "DELETE",
     fields: { groupName: "input" },
@@ -136,7 +160,7 @@ const operations: Operation[] = [
   },
   {
     name: "Get User Comments",
-    endpoint: "/api/comments/:username",
+    endpoint: "/api/comment/:username",
     method: "GET",
     fields: { username: "input" },
   },

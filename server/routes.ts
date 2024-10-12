@@ -191,16 +191,62 @@ class Routes {
     return { msg: groups.msg, groups: await Responses.groups(groups.userGroups) };
   }
 
+  @Router.get("/resourceGroups")
+  async getResourceGroups() {
+    let groups;
+    groups = await Grouping.getResourceGroups();
+    return { msg: "Retrieved all resource groups!", groups: await Responses.groups(groups) };
+  }
+
+  @Router.post("/resourceGroups")
+  async createResourceGroup(session: SessionDoc, groupName: string, groupDescription: string) {
+    const groupOwner = Sessioning.getUser(session);
+    const resource = true;
+    const created = await Grouping.createGroup(groupOwner, groupName, groupDescription, resource);
+    return { msg: created.msg, group: await Responses.group(created.group) };
+  }
+
+  @Router.post("/resourceGroups/add/:resourceId")
+  async addResourceToGroup(session: SessionDoc, resourceId: ObjectId, groupName: string) {
+    const user = Sessioning.getUser(session);
+    const posts = await Posting.getPosts();
+    const comments = await Commenting.getComments();
+    var isResource: boolean = false;
+    for (var p of posts) {
+      if (p._id.equals(resourceId)) {
+        isResource = true;
+        break;
+      }
+    }
+    if (!isResource) {
+      for (var c of comments) {
+        if (c._id.equals(resourceId)) {
+          isResource = true;
+          break;
+        }
+      }
+    }
+
+    if (!isResource) {
+      throw new Error("Item you are trying to add is not a resource (post or comment)!");
+    }
+
+    let created;
+    created = await Grouping.addResourceToGroup(user, resourceId, groupName);
+    return { msg: created.msg, group: await Responses.group(created.group) };
+  }
+
   @Router.post("/groups")
-  async createGroup(session: SessionDoc, groupName: string, groupDescription: string) {
+  async createUserGroup(session: SessionDoc, groupName: string, groupDescription: string) {
     const groupOwner = Sessioning.getUser(session);
     const userBadges = await Milestoning.getBadges(groupOwner);
+    const resource = false;
     if (userBadges !== null) {
       if (!(userBadges.userMilestones instanceof Map)) {
         userBadges.userMilestones = new Map(Object.entries(userBadges.userMilestones || {}));
       }
       if (userBadges.userMilestones.get("Comment Guru") && userBadges.userMilestones.get("Post Superstar") && userBadges.userMilestones.get("Getting Started: Created Account")) {
-        const created = await Grouping.createGroup(groupOwner, groupName, groupDescription);
+        const created = await Grouping.createGroup(groupOwner, groupName, groupDescription, resource);
         return { msg: created.msg, group: await Responses.group(created.group) };
       } else {
         const missingBadge: string[] = [];
@@ -219,7 +265,7 @@ class Routes {
   }
 
   @Router.post("/groups/addUser")
-  async joinGroup(session: SessionDoc, groupName: string) {
+  async joinUserGroup(session: SessionDoc, groupName: string) {
     const user = Sessioning.getUser(session);
     let created;
     created = await Grouping.joinGroup(user, groupName);
@@ -253,6 +299,13 @@ class Routes {
     return { msg: leaving.msg };
   }
 
+  @Router.patch("/resourceGroups/remove/:resourceId")
+  async leaveResourceGroup(session: SessionDoc, groupName: string, resourceId: ObjectId) {
+    const user = Sessioning.getUser(session);
+    const leaving = await Grouping.leaveResourceGroup(user, groupName, resourceId);
+    return { msg: leaving.msg };
+  }
+
   @Router.patch("/groups/name/:groupName")
   async editGroupName(session: SessionDoc, id: string, groupName: string) {
     const groupOwner = Sessioning.getUser(session);
@@ -276,7 +329,7 @@ class Routes {
     return Responses.milestone(milestones);
   }
 
-  @Router.get("/comments/:username")
+  @Router.get("/comment/:username")
   async getComment(username: string) {
     let comments;
     const id = (await Authing.getUserByUsername(username))._id;

@@ -22,6 +22,11 @@ export default class CommentingConcept {
     this.comments = new DocCollection<CommentDoc>(collectionName);
   }
 
+  async getComments() {
+    // Returns all comments! You might want to page for better client performance
+    return await this.comments.readMany({}, { sort: { _id: -1 } });
+  }
+
   async addComment(author: ObjectId, content: string, itemToReplyTo: ObjectId) {
     const _id = await this.comments.createOne({ author, content, itemToReplyTo });
     return { msg: "Comment successfully created!", comment: await this.comments.readOne({ _id }) };
