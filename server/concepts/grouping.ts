@@ -11,13 +11,13 @@ export interface GroupDoc extends BaseDoc {
 }
 
 /**
- * concept: Milestone-ing [Milestone, User]
+ * concept: Grouping [Collection, User, Items]
  */
 export default class GroupingConcept {
   public readonly groups: DocCollection<GroupDoc>;
 
   /**
-   * Make an instance of Milestone-ing.
+   * Make an instance of Grouping.
    */
   constructor(collectionName: string) {
     this.groups = new DocCollection<GroupDoc>(collectionName);

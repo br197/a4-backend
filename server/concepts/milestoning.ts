@@ -8,7 +8,7 @@ export interface MilestoneDoc extends BaseDoc {
 }
 
 /**
- * concept: Milestone-ing [Milestone, User]
+ * concept: Milestone-ing [User]
  */
 export default class MilestoningConcept {
   public readonly milestones: DocCollection<MilestoneDoc>;

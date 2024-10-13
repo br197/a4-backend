@@ -9,20 +9,20 @@ export interface MapDoc extends BaseDoc {
 }
 
 /**
- * concept: Milestone-ing [Milestone, User]
+ * concept: Mapping [Item]
  */
 export default class MappingConcept {
   public readonly maps: DocCollection<MapDoc>;
 
   /**
-   * Make an instance of Milestone-ing.
+   * Make an instance of Mapping.
    */
   constructor(collectionName: string) {
     this.maps = new DocCollection<MapDoc>(collectionName);
   }
 
   /**
-   * Creates a document for user with id `_id` located at `address`
+   * Creates a document for user with id `_id` located at `cityString`, `stateString`
    */
   async createMap(user: ObjectId, cityString: string, stateString: string) {
     const userLocation = await this.maps.readOne({ user: user });
