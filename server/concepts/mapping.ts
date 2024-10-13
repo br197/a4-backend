@@ -9,7 +9,7 @@ export interface MapDoc extends BaseDoc {
 }
 
 /**
- * concept: Mapping [Item]
+ * concept: Mapping [Item, User, Maps]
  */
 export default class MappingConcept {
   public readonly maps: DocCollection<MapDoc>;
