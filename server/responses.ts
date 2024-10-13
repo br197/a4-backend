@@ -2,6 +2,7 @@ import { Authing } from "./app";
 import { CommentAuthorNotMatchError, CommentDoc } from "./concepts/commenting";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { GroupDoc } from "./concepts/grouping";
+import { MapDoc } from "./concepts/mapping";
 import { MilestoneDoc } from "./concepts/milestoning";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
 import { Router } from "./framework/router";
@@ -54,6 +55,16 @@ export default class Responses {
   }
 
   /**
+   * Convert MapDoc into more readable format for the frontend.
+   */
+  static async map(map: MapDoc | null) {
+    if (!map) {
+      return map;
+    }
+    return { ...map };
+  }
+
+  /**
    * Same as {@link post} but for an array of PostDoc for improved performance.
    */
   static async posts(posts: PostDoc[]) {
@@ -77,10 +88,17 @@ export default class Responses {
   }
 
   /**
-   * Display information for array of groups.
+   * Display information for array of milestones.
    */
   static async milestones(milestones: MilestoneDoc[]) {
     return milestones.map((milestone) => ({ ...milestone }));
+  }
+
+  /**
+   * Display information for array of maps.
+   */
+  static async maps(maps: MapDoc[]) {
+    return maps.map((map) => ({ ...map }));
   }
 
   /**

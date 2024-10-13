@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Commenting, Friending, Grouping, Milestoning, Posting, Sessioning } from "./app";
+import { Authing, Commenting, Friending, Grouping, Mapping, Milestoning, Posting, Sessioning } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -378,7 +378,55 @@ class Routes {
     const user = Sessioning.getUser(session);
     const oid = new ObjectId(commentId);
     await Commenting.assertAuthorIsUser(oid, user);
-    return Commenting.delete(oid);
+    return await Commenting.delete(oid);
+  }
+
+  @Router.post("/maps")
+  async createMap(session: SessionDoc, city: string, state: string) {
+    const user = Sessioning.getUser(session);
+    const map = await Mapping.createMap(user, city, state);
+    return { msg: map.msg, map: await Responses.map(map.location) };
+  }
+
+  @Router.get("/maps/:id")
+  async findNearbyUsers(session: SessionDoc, city: string, state: string) {
+    const user = Sessioning.getUser(session);
+    const map = await Mapping.findNearbyUsers(user, city, state);
+    const messages = [map.msg];
+    const userBadges = await Milestoning.getBadges(user);
+    if (userBadges !== null) {
+      if (!(userBadges.userMilestones instanceof Map)) {
+        userBadges.userMilestones = new Map(Object.entries(userBadges.userMilestones || {}));
+      }
+      if (!userBadges.userMilestones.get("Branching Out")) {
+        const milestone = await Milestoning.receiveBadge(user, "Branching Out");
+        if (milestone) {
+          messages.push(milestone.msg);
+        }
+      }
+    }
+    return { msg: messages.join(" "), map: await Responses.maps(map.nearbyUsers) };
+  }
+
+  @Router.get("/maps/currentLocation/:id")
+  async getCurrentLocation(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    const map = await Mapping.getCurrentLocation(user);
+    return { msg: map.msg, map: await Responses.map(map.location) };
+  }
+
+  @Router.patch("/maps/:user")
+  async updateUserLocation(session: SessionDoc, city: string, state: string) {
+    const user = Sessioning.getUser(session);
+    const map = await Mapping.updateUserLocation(user, city, state);
+    return { msg: map.msg, map: await Responses.map(map.location) };
+  }
+
+  @Router.delete("/maps/:user")
+  async deleteUserLocation(session: SessionDoc) {
+    const user = Sessioning.getUser(session);
+    const map = await Mapping.deleteUserLocation(user);
+    return { msg: map.msg };
   }
 }
 /** The web app. */

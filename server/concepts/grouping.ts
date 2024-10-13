@@ -73,7 +73,7 @@ export default class GroupingConcept {
     const group = await this.groups.readOne({ groupName });
     if (!group) {
       throw new NotFoundError(`Group ${groupName} does not exist!`);
-    } else if (!group.groupOwner.equals(user)) {
+    } else if (!(group.groupOwner.toString() === user.toString())) {
       throw new Error("You cannot add resources to the group, as you are not the owner of the group!");
     } else if (group.groupMembers.some((member) => member.toString() === addedResource.toString())) {
       throw new Error("Resource already in group!");
@@ -93,7 +93,7 @@ export default class GroupingConcept {
       throw new NotFoundError(`Group ${groupName} does not exist!`);
     } else if (group.resource) {
       throw new Error("Users can't join resource groups!");
-    } else if (group.groupMembers.some((member) => member.toString() === addedGroupMember.toString()) || group.groupOwner.equals(addedGroupMember)) {
+    } else if (group.groupMembers.some((member) => member.toString() === addedGroupMember.toString()) || group.groupOwner.toString() === addedGroupMember.toString()) {
       throw new Error("User already in group!");
     }
     const groupMembers: Array<ObjectId> = group.groupMembers;
@@ -123,8 +123,8 @@ export default class GroupingConcept {
     const group = await this.groups.readOne({ groupName });
     if (!group) {
       throw new NotFoundError(`Group ${groupName} does not exist!`);
-    } else if (group.groupMembers.some((member) => member.equals(_id))) {
-      const index = group.groupMembers.findIndex((member) => member.equals(_id));
+    } else if (group.groupMembers.some((member) => member.toString() === _id.toString())) {
+      const index = group.groupMembers.findIndex((member) => member.toString() === _id.toString());
       group.groupMembers.splice(index, 1);
       await this.groups.partialUpdateOne({ groupName }, { groupMembers: group.groupMembers });
     } else {
@@ -140,10 +140,10 @@ export default class GroupingConcept {
     const group = await this.groups.readOne({ groupName });
     if (!group) {
       throw new NotFoundError(`Group ${groupName} does not exist!`);
-    } else if (!group.groupOwner.equals(_id)) {
+    } else if (!(group.groupOwner.toString() === _id.toString())) {
       throw new Error("User not owner of group!");
-    } else if (group.groupMembers.some((member) => member.equals(resourceId))) {
-      const index = group.groupMembers.findIndex((member) => member.equals(resourceId));
+    } else if (group.groupMembers.some((member) => member.toString() === resourceId.toString())) {
+      const index = group.groupMembers.findIndex((member) => member.toString() === resourceId.toString());
       group.groupMembers.splice(index, 1);
       await this.groups.partialUpdateOne({ groupName }, { groupMembers: group.groupMembers });
     } else {

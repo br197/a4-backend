@@ -19,7 +19,7 @@ export default class MilestoningConcept {
    */
   constructor(collectionName: string) {
     this.milestones = new DocCollection<MilestoneDoc>(collectionName);
-    this.initialBadges = ["Getting Started: Created Account", "Building Community", "Branching Out", "Post Superstar", "Knowledge Power", "Comment Guru"];
+    this.initialBadges = ["Getting Started: Created Account", "Building Community", "Branching Out", "Post Superstar", "Comment Guru"];
   }
 
   /**

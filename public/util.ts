@@ -182,6 +182,36 @@ const operations: Operation[] = [
     method: "DELETE",
     fields: { commentId: "input" },
   },
+  {
+    name: "Opt In Location",
+    endpoint: "/api/maps",
+    method: "POST",
+    fields: { city: "input", state: "input" },
+  },
+  {
+    name: "Find Nearby Users (Click Submit to Use Opted In Location)",
+    endpoint: "/api/maps/:id",
+    method: "GET",
+    fields: { city: "input", state: "input" },
+  },
+  {
+    name: "Get Current Opted In Location",
+    endpoint: "/api/maps/currentLocation/:id",
+    method: "GET",
+    fields: { userId: "input" },
+  },
+  {
+    name: "Update Current Opted In Lcoation",
+    endpoint: "/api/maps/:userId",
+    method: "PATCH",
+    fields: { userId: "input", city: "input", state: "input" },
+  },
+  {
+    name: "Opt out Location",
+    endpoint: "/api/maps/:userId",
+    method: "DELETE",
+    fields: { userId: "input" },
+  },
 
   //
   // ...
